@@ -29,6 +29,9 @@ let gateway = `ws://192.168.1.6/ws`;
 let websocket;
 window.addEventListener("load", () => {
   document
+    .getElementById("reset")
+    .addEventListener("click", () => websocket.send("reset"));
+  document
     .getElementById("zero")
     .addEventListener("click", () => websocket.send("zero"));
   document.getElementById("calibrate").addEventListener("click", () => {

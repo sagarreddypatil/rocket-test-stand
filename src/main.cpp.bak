@@ -25,6 +25,11 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
     {
       scale.tare(100);
     }
+    else if (strcmp((char *)data, "reset") == 0)
+    {
+      ws.closeAll();
+      ESP.reset();
+    }
   }
 }
 
