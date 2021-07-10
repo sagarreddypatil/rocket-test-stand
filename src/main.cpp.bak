@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ESPAsyncWiFiManager.h>
@@ -57,9 +58,19 @@ void setup()
 {
   Serial.begin(2000000);
 
+  scale.begin(DOUT, CLK);
+  scale.set_scale(calibration_factor);
+  scale.tare();
+
   AsyncWiFiManager wifiManager(&server, &dns);
   wifiManager.autoConnect();
+  WiFi.hostname("ESPTestStand");
   Serial.println("Connected");
+
+  if (MDNS.begin("ESPTestStand", WiFi.localIP()))
+  {
+    Serial.println("mDNS Started");
+  }
 
   ws.onEvent(onEvent);
   server.addHandler(&ws);
@@ -68,9 +79,9 @@ void setup()
             { request->send_P(200, "text/html", "Hello World!"); });
   server.begin();
 
-  scale.begin(DOUT, CLK);
-  scale.set_scale(calibration_factor);
-  scale.tare();
+  Serial.println("Server Started");
+  MDNS.addService("ws", "tcp", 81);
+  MDNS.addService("http", "tcp", 80);
 }
 
 unsigned long prevTime = 0;
@@ -79,6 +90,7 @@ void loop()
 {
   unsigned long t = millis();
   ws.cleanupClients();
+  MDNS.update();
 
   long rawValue = scale.get_value();
 
