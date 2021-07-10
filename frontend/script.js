@@ -55,39 +55,18 @@ window.addEventListener("load", () => {
     );
     download("data.csv", CSV);
   });
+
   initWebSocket();
 });
-
-function download(filename, text) {
-  var element = document.createElement("a");
-  element.setAttribute(
-    "href",
-    "data:text/plain;charset=utf-8," + encodeURIComponent(text)
-  );
-  element.setAttribute("download", filename);
-
-  element.style.display = "none";
-  document.body.appendChild(element);
-
-  element.click();
-
-  document.body.removeChild(element);
-}
 
 function initWebSocket() {
   console.log("Trying to open a WebSocket connection...");
   websocket = new WebSocket(gateway);
-  websocket.onopen = onOpen;
-  websocket.onclose = onClose;
+  websocket.onopen = () => console.log("Connection opened");
+  websocket.onclose = () => alert("Connection closed");
   websocket.onmessage = onMessage;
 }
-function onOpen(event) {
-  console.log("Connection opened");
-}
-function onClose(event) {
-  console.log("Connection closed");
-  setTimeout(initWebSocket, 500);
-}
+
 function onMessage(event) {
   [timestamp, scaleReading] = event.data.split(",").map((a) => parseInt(a));
   forceReading = scaleReading / window.localStorage.getItem("cal-divisor");
@@ -110,4 +89,20 @@ function onMessage(event) {
   document.getElementById("timestamp").innerText = timestamp;
   document.getElementById("freq").innerText =
     1000 / (timestamp - window.data.slice(-2)[0].timestamp);
+}
+
+function download(filename, text) {
+  var element = document.createElement("a");
+  element.setAttribute(
+    "href",
+    "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+  );
+  element.setAttribute("download", filename);
+
+  element.style.display = "none";
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
 }
