@@ -23,7 +23,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
     data[len] = 0;
     if (strcmp((char *)data, "zero") == 0)
     {
-      scale.tare();
+      scale.tare(100);
     }
   }
 }
@@ -68,16 +68,21 @@ void setup()
   scale.tare();
 }
 
+unsigned long prevTime = 0;
+
 void loop()
 {
+  unsigned long t = millis();
   ws.cleanupClients();
 
-  //float scaleValue = scale.get_units();
   long rawValue = scale.get_value();
 
-  char out[20];
-  snprintf(out, sizeof(out), "%i", rawValue);
+  char out[50];
+  sprintf(out, "%lu,%ld", millis(), rawValue);
 
   ws.textAll(out);
-  Serial.println(out);
+  // Serial.println(out);
+  Serial.println(1000.0 / (t - prevTime));
+
+  prevTime = t;
 }

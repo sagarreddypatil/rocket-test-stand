@@ -3,21 +3,77 @@
   <head>
     <title>ESP Web Server</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://leeoniya.github.io/uPlot/dist/uPlot.min.css"
+    />
   </head>
   <body>
     <div>
-      Current Force(Internal Units): <span id="scale">0</span> Current
-      Force(Calibrated Scale): <span id="scale_cal">0</span>
-      <button id="zero">Zero Scale</button>
+      Timestamp: <span id="timestamp">0</span>
+      <br />
+      Current Force(Internal Units): <span id="scale">0</span>
+      <br />
+      Current Force(Calibrated Scale): <span id="scale-cal">0</span>
+      <br />
+      Data Frequency: <span id="freq">0</span> Hz
+      <br />
+      <input type="range" min="100" max="2000" id="graph-prev" />
+      <br />
+      <div id="data-chart"></div>
+      <br /><button id="zero">Zero Scale</button>
     </div>
+    <br />
     <div>
-      <input type="text" placeholder="Calibration Scale" />
-      <button>Calibrate</button>
+      <input type="number" id="cal-scale" placeholder="Calibration Scale" />
+      <button id="calibrate">Calibrate</button>
     </div>
+    <script src="https://leeoniya.github.io/uPlot/dist/uPlot.iife.js"></script>
     <script>
-      var gateway = `ws://192.168.1.6/ws`;
-      var websocket;
-      window.addEventListener("load", onLoad);
+      let scaleReading = 0;
+      let forceReading = 0;
+      let timestamp = 0;
+      let chart = new uPlot(
+        {
+          title: "Force vs Time(ms)",
+          id: "chart",
+          scales: {
+            x: {
+              time: false,
+            },
+          },
+          width: 800,
+          height: 250,
+          series: [
+            {},
+            {
+              stroke: "red",
+            },
+          ],
+        },
+        [],
+        document.getElementById("data-chart")
+      );
+
+      window.data = [];
+
+      let gateway = `ws://192.168.1.6/ws`;
+      let websocket;
+      window.addEventListener("load", () => {
+        document
+          .getElementById("zero")
+          .addEventListener("click", () => websocket.send("zero"));
+        document
+          .getElementById("calibrate")
+          .addEventListener("click", () =>
+            window.localStorage.setItem(
+              "cal-divisor",
+              scaleReading /
+                parseFloat(document.getElementById("cal-scale").value)
+            )
+          );
+        initWebSocket();
+      });
       function initWebSocket() {
         console.log("Trying to open a WebSocket connection...");
         websocket = new WebSocket(gateway);
@@ -30,20 +86,34 @@
       }
       function onClose(event) {
         console.log("Connection closed");
-        setTimeout(initWebSocket, 2000);
+        setTimeout(initWebSocket, 500);
       }
       function onMessage(event) {
-        document.getElementById("scale").innerHTML = event.data;
-      }
-      function onLoad(event) {
-        initWebSocket();
-        initButton();
-      }
-      function initButton() {
-        document.getElementById("zero").addEventListener("click", zero);
-      }
-      function zero() {
-        websocket.send("zero");
+        [timestamp, scaleReading] = event.data
+          .split(",")
+          .map((a) => parseInt(a));
+        forceReading =
+          scaleReading / window.localStorage.getItem("cal-divisor");
+
+        window.data.push({
+          timestamp: timestamp,
+          scaleReading: scaleReading,
+          forceReading: forceReading,
+        });
+
+        let graphPrev = document.getElementById("graph-prev").value;
+
+        chart.setData([
+          window.data.slice(-graphPrev).map((data) => data.timestamp),
+          window.data.slice(-graphPrev).map((data) => data.forceReading),
+        ]);
+
+        document.getElementById("scale").innerText = scaleReading;
+        document.getElementById("scale-cal").innerText =
+          forceReading.toFixed(2);
+        document.getElementById("timestamp").innerText = timestamp;
+        document.getElementById("freq").innerText =
+          1000 / (timestamp - window.data.slice(-2)[0].timestamp);
       }
     </script>
   </body>
