@@ -31,14 +31,23 @@ window.addEventListener("load", () => {
   document
     .getElementById("zero")
     .addEventListener("click", () => websocket.send("zero"));
-  document
-    .getElementById("calibrate")
-    .addEventListener("click", () =>
+  document.getElementById("calibrate").addEventListener("click", () => {
+    let latest_entry_idx = window.data.length;
+    document.getElementById("calibration-info").innerText = "Calibrating...";
+    setTimeout(() => {
+      let scaleValues = window.data
+        .slice(latest_entry_idx, -1)
+        .map((data) => data.scaleReading);
+      let avgScaleValue =
+        scaleValues.reduce((a, b) => a + b, 0) / scaleValues.length;
       window.localStorage.setItem(
         "cal-divisor",
-        scaleReading / parseFloat(document.getElementById("cal-scale").value)
-      )
-    );
+        avgScaleValue / parseFloat(document.getElementById("cal-scale").value)
+      );
+      document.getElementById("calibration-info").innerText =
+        "Calibration Finished";
+    }, 1000);
+  });
   document
     .getElementById("clear")
     .addEventListener("click", () => (window.data = []));
@@ -87,8 +96,8 @@ function onMessage(event) {
   document.getElementById("scale").innerText = scaleReading;
   document.getElementById("scale-cal").innerText = forceReading.toFixed(2);
   document.getElementById("timestamp").innerText = timestamp;
-  document.getElementById("freq").innerText =
-    1000 / (timestamp - window.data.slice(-2)[0].timestamp);
+  //   document.getElementById("freq").innerText =
+  //     1000 / (timestamp - window.data.slice(-2)[0].timestamp);
 }
 
 function download(filename, text) {

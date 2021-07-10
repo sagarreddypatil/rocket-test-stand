@@ -15,8 +15,8 @@
       Current Force(Internal Units): <span id="scale">0</span>
       <br />
       Current Force(Calibrated Scale): <span id="scale-cal">0</span>
-      <br />
-      Data Frequency: <span id="freq">0</span> Hz
+      <!-- <br />
+      Data Frequency: <span id="freq">0</span> Hz -->
       <br />
       Graph Length: <input type="range" min="100" max="2000" id="graph-prev" />
       <br />
@@ -29,7 +29,8 @@
     <br />
     <div>
       <input type="number" id="cal-scale" placeholder="Calibration Scale" />
-      <button id="calibrate">Calibrate</button>
+      <button id="calibrate">Calibrate</button
+      ><span id="calibration-info"></span>
     </div>
     <script src="https://leeoniya.github.io/uPlot/dist/uPlot.iife.js"></script>
     <script src="script.js"></script>
