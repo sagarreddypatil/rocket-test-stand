@@ -82,7 +82,7 @@ void loop()
 
   ws.textAll(out);
   // Serial.println(out);
-  Serial.println(1000.0 / (t - prevTime));
+  //Serial.println(1000.0 / (t - prevTime));
 
   prevTime = t;
 }

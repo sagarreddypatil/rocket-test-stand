@@ -18,9 +18,12 @@
       <br />
       Data Frequency: <span id="freq">0</span> Hz
       <br />
-      <input type="range" min="100" max="2000" id="graph-prev" />
+      Graph Length: <input type="range" min="100" max="2000" id="graph-prev" />
       <br />
       <div id="data-chart"></div>
+      <br /><button id="clear">Clear Data</button> <br /><button id="dump">
+        Dump Data to Local Storage
+      </button>
       <br /><button id="zero">Zero Scale</button>
     </div>
     <br />
@@ -72,6 +75,13 @@
                 parseFloat(document.getElementById("cal-scale").value)
             )
           );
+        document
+          .getElementById("clear")
+          .addEventListener("click", () => (window.data = []));
+        document.getElementById("dump").addEventListener("click", () => {
+          window.localStorage.setItem("data-dump", JSON.stringify(window.data));
+          window.data = [];
+        });
         initWebSocket();
       });
       function initWebSocket() {
