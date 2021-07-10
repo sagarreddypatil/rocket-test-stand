@@ -69,6 +69,8 @@ void setup()
 
   if (MDNS.begin("ESPTestStand", WiFi.localIP()))
   {
+    MDNS.addService("ws", "tcp", 80);
+    MDNS.addService("http", "tcp", 80);
     Serial.println("mDNS Started");
   }
 
@@ -80,8 +82,6 @@ void setup()
   server.begin();
 
   Serial.println("Server Started");
-  MDNS.addService("ws", "tcp", 81);
-  MDNS.addService("http", "tcp", 80);
 }
 
 unsigned long prevTime = 0;
