@@ -22,8 +22,8 @@
       <br />
       <div id="data-chart"></div>
       <br /><button id="clear">Clear Data</button> <br /><button id="dump">
-        Dump Data to Local Storage
-      </button>
+        Dump Data to Local Storage</button
+      ><br /><button id="dl-dump">Download Data Dump as CSV</button>
       <br /><button id="zero">Zero Scale</button>
     </div>
     <br />
@@ -82,8 +82,34 @@
           window.localStorage.setItem("data-dump", JSON.stringify(window.data));
           window.data = [];
         });
+        document.getElementById("dl-dump").addEventListener("click", () => {
+          dump = JSON.parse(window.localStorage.getItem("data-dump"));
+          CSV = "timestamp,Raw Scale Value,Force Value\n";
+          dump.forEach(
+            (data) =>
+              (CSV += `${data.timestamp},${data.scaleReading},${data.forceReading}\n`)
+          );
+          download("data.csv", CSV);
+        });
         initWebSocket();
       });
+
+      function download(filename, text) {
+        var element = document.createElement("a");
+        element.setAttribute(
+          "href",
+          "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+        );
+        element.setAttribute("download", filename);
+
+        element.style.display = "none";
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+      }
+
       function initWebSocket() {
         console.log("Trying to open a WebSocket connection...");
         websocket = new WebSocket(gateway);
