@@ -13,6 +13,9 @@ const int CLK = D7;
 
 void setup()
 {
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+
   Serial.begin(2000000);
 
   scale.begin(DOUT, CLK);
@@ -38,11 +41,12 @@ void setup()
   client = server.available();
   Serial.println("Server Started");
 
-  Serial.println("\nWaiting 1 second");
-  delay(1000);
+  digitalWrite(LED_BUILTIN, LOW);
 }
 
 unsigned long prevTime = 0;
+unsigned long counter = 0;
+char out[200];
 
 void actual_loop()
 {
@@ -51,17 +55,38 @@ void actual_loop()
 
   long rawValue = scale.get_value();
 
-  char out[50];
-  sprintf(out, "%lu,%ld\n", millis(), rawValue);
-
   if (client.connected())
   {
+    counter++;
+    snprintf(out, sizeof(out), "%lu,%lu,%ld\n", counter, millis(), rawValue);
     client.write(out);
   }
+  else
+  {
+    sprintf(out, "%lu,%ld\n", millis(), rawValue);
+  }
 
-  Serial.print(out);
+  if (client.available())
+  {
+    String ipt = client.readString();
 
-  // Serial.println(1000.0 / (t - prevTime));
+    Serial.print("Recieved command: ");
+    Serial.println(ipt);
+
+    if (ipt == "zero")
+    {
+      scale.tare(10);
+    }
+    else if (ipt == "reset")
+    {
+      ESP.reset();
+    }
+
+    Serial.println("Command Finished");
+  }
+
+  //Serial.print(out);
+  //Serial.println(1000.0 / (t - prevTime));
 
   prevTime = t;
 }
@@ -69,6 +94,7 @@ void actual_loop()
 void loop()
 {
   client = server.available();
+  client.setTimeout(10);
   if (client.connected())
   {
     while (client.connected())
