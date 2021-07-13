@@ -84,7 +84,7 @@ void setup()
   // server.begin();
   // Serial.println("Server Started");
 
-  WiFi.begin("***REMOVED***", "***REMOVED***");
+  WiFi.begin(); //insert ssid and pwd here
   while (!WiFi.isConnected())
   {
     Serial.println("Connecting...");
