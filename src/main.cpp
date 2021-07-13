@@ -7,9 +7,11 @@
 #include <HX711.h>
 #include <LittleFS.h>
 
-AsyncWebServer server(80);
-AsyncWebSocket ws("/ws");
-DNSServer dns;
+WiFiServer server(80);
+WiFiClient client;
+// AsyncWebServer server(80);
+// AsyncWebSocket ws("/ws");
+// DNSServer dns;
 HX711 scale;
 
 File csvFile;
@@ -17,58 +19,55 @@ File csvFile;
 const int DOUT = D6;
 const int CLK = D7;
 
-float calibration_factor = 25225;
+// void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
+// {
+//   AwsFrameInfo *info = (AwsFrameInfo *)arg;
+//   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
+//   {
+//     data[len] = 0;
+//     if (strcmp((char *)data, "zero") == 0)
+//     {
+//       scale.tare(100);
+//     }
+//     else if (strcmp((char *)data, "reset") == 0)
+//     {
+//       ws.closeAll();
+//       ESP.reset();
+//     }
+//   }
+// }
 
-void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
-{
-  AwsFrameInfo *info = (AwsFrameInfo *)arg;
-  if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
-  {
-    data[len] = 0;
-    if (strcmp((char *)data, "zero") == 0)
-    {
-      scale.tare(100);
-    }
-    else if (strcmp((char *)data, "reset") == 0)
-    {
-      ws.closeAll();
-      ESP.reset();
-    }
-  }
-}
-
-void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
-             void *arg, uint8_t *data, size_t len)
-{
-  switch (type)
-  {
-  case WS_EVT_CONNECT:
-    Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-    break;
-  case WS_EVT_DISCONNECT:
-    Serial.printf("WebSocket client #%u disconnected\n", client->id());
-    break;
-  case WS_EVT_DATA:
-    handleWebSocketMessage(arg, data, len);
-    break;
-  case WS_EVT_PONG:
-  case WS_EVT_ERROR:
-    break;
-  }
-}
+// void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
+//              void *arg, uint8_t *data, size_t len)
+// {
+//   switch (type)
+//   {
+//   case WS_EVT_CONNECT:
+//     Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+//     break;
+//   case WS_EVT_DISCONNECT:
+//     Serial.printf("WebSocket client #%u disconnected\n", client->id());
+//     break;
+//   case WS_EVT_DATA:
+//     handleWebSocketMessage(arg, data, len);
+//     break;
+//   case WS_EVT_PONG:
+//   case WS_EVT_ERROR:
+//     break;
+//   }
+// }
 
 void setup()
 {
   Serial.begin(2000000);
 
   scale.begin(DOUT, CLK);
-  scale.set_scale(calibration_factor);
   scale.tare();
 
-  AsyncWiFiManager wifiManager(&server, &dns);
-  wifiManager.autoConnect();
-  WiFi.hostname("ESPTestStand");
-  Serial.println("Connected");
+  // AsyncWiFiManager wifiManager(&server, &dns);
+  // wifiManager.autoConnect();
+  // WiFi.hostname("ESPTestStand");
+  // Serial.println("Connected");
 
   if (MDNS.begin("ESPTestStand", WiFi.localIP()))
   {
@@ -77,12 +76,24 @@ void setup()
     Serial.println("mDNS Started");
   }
 
-  ws.onEvent(onEvent);
-  server.addHandler(&ws);
+  // ws.onEvent(onEvent);
+  // server.addHandler(&ws);
 
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-            { request->send_P(200, "text/html", "Hello World!"); });
+  // server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+  //           { request->send_P(200, "text/html", "Hello World!"); });
+  // server.begin();
+  // Serial.println("Server Started");
+
+  while (!WiFi.isConnected())
+  {
+    Serial.println("Connecting...");
+    delay(1000);
+  }
+
+  Serial.println(WiFi.localIP());
+
   server.begin();
+  client = server.available();
   Serial.println("Server Started");
 
   Serial.println("Inizializing FS...");
@@ -104,31 +115,49 @@ void setup()
 
 unsigned long prevTime = 0;
 
-void loop()
+void actual_loop()
 {
-  if (millis() > 10000)
-  {
-    csvFile.close();
-    csvFile = LittleFS.open("/log.csv", "r");
-    Serial.println(csvFile.readString());
-    csvFile.close();
-    delay(100000);
-  }
   unsigned long t = millis();
-  ws.cleanupClients();
+  // ws.cleanupClients();
   MDNS.update();
 
   long rawValue = scale.get_value();
 
   char out[50];
-  sprintf(out, "%lu,%ld", millis(), rawValue);
+  sprintf(out, "%lu,%ld\n", millis(), rawValue);
 
-  ws.textAll(out);
-  Serial.println(out);
+  // ws.textAll(out);
+  client.write(out);
 
-  csvFile.println(out);
+  Serial.print(out);
+  csvFile.print(out);
 
   // Serial.println(1000.0 / (t - prevTime));
 
   prevTime = t;
+}
+
+void loop()
+{
+  // if (millis() > 10000)
+  // {
+  //   csvFile.close();
+  //   csvFile = LittleFS.open("/log.csv", "r");
+  //   Serial.println(csvFile.readString());
+  //   csvFile.close();
+  //   delay(100000);
+  // }
+
+  client = server.available();
+  if (client.connected())
+  {
+    while (client.connected())
+    {
+      actual_loop();
+    }
+  }
+  else
+  {
+    actual_loop();
+  }
 }
