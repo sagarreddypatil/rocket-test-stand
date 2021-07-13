@@ -25,7 +25,7 @@ let chart = new uPlot(
 
 window.data = [];
 
-let gateway = `ws://ESPTestStand.local/ws`;
+let gateway = `ws://192.168.1.16/ws`;
 let websocket;
 window.addEventListener("load", () => {
   document

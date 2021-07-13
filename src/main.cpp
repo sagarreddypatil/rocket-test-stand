@@ -5,11 +5,14 @@
 #include <ESPAsyncWebServer.h>
 #include <ESPAsyncWiFiManager.h>
 #include <HX711.h>
+#include <LittleFS.h>
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 DNSServer dns;
 HX711 scale;
+
+File csvFile;
 
 const int DOUT = D6;
 const int CLK = D7;
@@ -80,14 +83,37 @@ void setup()
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send_P(200, "text/html", "Hello World!"); });
   server.begin();
-
   Serial.println("Server Started");
+
+  Serial.println("Inizializing FS...");
+  if (LittleFS.begin())
+  {
+    Serial.println("done.");
+  }
+  else
+  {
+    Serial.println("fail. Halting");
+    while (1)
+      ;
+  }
+
+  LittleFS.remove("/log.csv");
+  csvFile = LittleFS.open("/log.csv", "w");
+  csvFile.println("millis,rawvalue");
 }
 
 unsigned long prevTime = 0;
 
 void loop()
 {
+  if (millis() > 10000)
+  {
+    csvFile.close();
+    csvFile = LittleFS.open("/log.csv", "r");
+    Serial.println(csvFile.readString());
+    csvFile.close();
+    delay(100000);
+  }
   unsigned long t = millis();
   ws.cleanupClients();
   MDNS.update();
@@ -98,8 +124,11 @@ void loop()
   sprintf(out, "%lu,%ld", millis(), rawValue);
 
   ws.textAll(out);
-  // Serial.println(out);
-  //Serial.println(1000.0 / (t - prevTime));
+  Serial.println(out);
+
+  csvFile.println(out);
+
+  // Serial.println(1000.0 / (t - prevTime));
 
   prevTime = t;
 }
