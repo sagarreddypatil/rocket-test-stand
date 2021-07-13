@@ -7,6 +7,7 @@ try {
 
 function createWindow() {
   const win = new BrowserWindow({
+    backgroundColor: "#FFF",
     width: 1280,
     height: 720,
     webPreferences: {
