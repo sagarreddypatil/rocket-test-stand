@@ -37,6 +37,9 @@ void setup()
   server.begin();
   client = server.available();
   Serial.println("Server Started");
+
+  Serial.println("\nWaiting 1 second");
+  delay(1000);
 }
 
 unsigned long prevTime = 0;
