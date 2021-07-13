@@ -54,7 +54,10 @@ void actual_loop()
   char out[50];
   sprintf(out, "%lu,%ld\n", millis(), rawValue);
 
-  client.write(out);
+  if (client.connected())
+  {
+    client.write(out);
+  }
 
   Serial.print(out);
 
