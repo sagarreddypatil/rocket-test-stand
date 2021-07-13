@@ -6,6 +6,7 @@
 #include <ESPAsyncWiFiManager.h>
 #include <HX711.h>
 #include <LittleFS.h>
+#include "secrets.h"
 
 WiFiServer server(80);
 WiFiClient client;
@@ -84,7 +85,7 @@ void setup()
   // server.begin();
   // Serial.println("Server Started");
 
-  WiFi.begin(); //insert ssid and pwd here
+  WiFi.begin(SSID, PWD); //insert ssid and pwd here
   while (!WiFi.isConnected())
   {
     Serial.println("Connecting...");
