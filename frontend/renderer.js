@@ -67,8 +67,17 @@ document.getElementById("calibrate").addEventListener("click", () => {
   }, 1000);
 });
 
+document.getElementById("esp-ip").addEventListener("change", () => {
+  let newIp = document.getElementById("esp-ip").value;
+
+  client.end();
+  client.connect(80, document.getElementById("esp-ip").value, () => {
+    console.log(`Connected to ${newIp}`);
+  });
+});
+
 const client = new net.Socket();
-client.connect(80, "192.168.1.16", () => {
+client.connect(80, document.getElementById("esp-ip").value, () => {
   console.log("Connected");
 });
 
