@@ -94,7 +94,7 @@ void actual_loop()
 void loop()
 {
   client = server.available();
-  client.setTimeout(10);
+  client.setTimeout(100);
   if (client.connected())
   {
     while (client.connected())

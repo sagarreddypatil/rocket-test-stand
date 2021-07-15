@@ -2,6 +2,8 @@ const net = require("net");
 const fs = require("fs");
 const uPlot = require("uplot");
 
+let paused = false;
+
 let scaleData = [];
 const chart = new uPlot(
   {
@@ -36,6 +38,11 @@ document
 document
   .getElementById("clear-data")
   .addEventListener("click", () => (scaleData = []));
+
+document.getElementById("pause").addEventListener("click", () => {
+  paused = !paused;
+  document.getElementById("pause").innerText = paused ? "Unpause" : "Pause";
+});
 
 document.getElementById("dump").addEventListener("click", () => {
   let jsonData = JSON.stringify(scaleData);
@@ -106,22 +113,28 @@ client.on("data", (data) => {
       return; // Discard bad data
     }
 
-    if (prevData && counter - prevData.counter > 1)
+    if (prevData && counter - prevData.counter > 1 && !paused)
       console.warn(
         `Data Loss Detected - Counter Difference: ${counter - prevData.counter}`
       );
 
-    scaleData.push({
-      counter: counter,
-      timestamp: timestamp,
-      scaleValueRaw: scaleValueRaw,
-      scaleValueCalibrated: scaleValueCalibrated,
-    });
+    if (!paused)
+      scaleData.push({
+        counter: counter,
+        timestamp: timestamp,
+        scaleValueRaw: scaleValueRaw,
+        scaleValueCalibrated: scaleValueCalibrated,
+      });
 
     document.getElementById("timestamp").innerText = timestamp;
     document.getElementById("scale-raw").innerText = scaleValueRaw;
     document.getElementById("scale-cal").innerText =
       Math.round(scaleValueCalibrated * 1000) / 1000;
+  });
+
+  client.on("error", (err) => {
+    console.log(`Network Error: ${err}`);
+    client.end();
   });
 
   let graphLength = parseFloat(document.getElementById("graph-length").value);
