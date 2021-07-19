@@ -1,8 +1,9 @@
-#include "secrets.h"
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <HX711.h>
+
+#include "secrets.h"
 
 WiFiServer liveDataServer(81);
 WiFiClient client;
