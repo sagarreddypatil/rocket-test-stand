@@ -13,8 +13,7 @@ const int CLK = D7;
 
 constexpr bool AP = false;
 
-void setup()
-{
+void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
 
@@ -25,11 +24,9 @@ void setup()
 
   if (AP)
     WiFi.softAP("ESPTestStand", "All Hail Newton");
-  else
-  {
+  else {
     WiFi.begin(SSID, PWD);
-    while (!WiFi.isConnected())
-    {
+    while (!WiFi.isConnected()) {
       Serial.println("Connecting...");
       digitalWrite(LED_BUILTIN, LOW);
       delay(50);
@@ -42,8 +39,7 @@ void setup()
     }
   }
 
-  if (MDNS.begin("ESPTestStand", WiFi.localIP()))
-  {
+  if (MDNS.begin("ESPTestStand", WiFi.localIP())) {
     MDNS.addService("http", "tcp", 80);
     Serial.println("mDNS Started");
   }
@@ -61,37 +57,29 @@ unsigned long prevTime = 0;
 unsigned long counter = 0;
 char out[200];
 
-void actual_loop()
-{
+void actual_loop() {
   unsigned long t = millis();
   MDNS.update();
 
   long rawValue = scale.get_value();
 
-  if (client.connected())
-  {
+  if (client.connected()) {
     counter++;
     snprintf(out, sizeof(out), "%lu,%lu,%ld\n", counter, millis(), rawValue);
     client.write(out);
-  }
-  else
-  {
+  } else {
     sprintf(out, "%lu,%ld\n", millis(), rawValue);
   }
 
-  if (client.available())
-  {
+  if (client.available()) {
     String ipt = client.readString();
 
     Serial.print("Recieved command: ");
     Serial.println(ipt);
 
-    if (ipt == "zero")
-    {
+    if (ipt == "zero") {
       scale.tare(10);
-    }
-    else if (ipt == "reset")
-    {
+    } else if (ipt == "reset") {
       ESP.reset();
     }
 
@@ -104,19 +92,14 @@ void actual_loop()
   prevTime = t;
 }
 
-void loop()
-{
+void loop() {
   client = liveDataServer.available();
   client.setTimeout(100);
-  if (client.connected())
-  {
-    while (client.connected())
-    {
+  if (client.connected()) {
+    while (client.connected()) {
       actual_loop();
     }
-  }
-  else
-  {
+  } else {
     actual_loop();
   }
 }
