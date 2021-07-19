@@ -92,7 +92,7 @@ mdnsResolver
     document.getElementById(
       "mdns-status"
     ).innerText = `Device found. IP: ${deviceIp}`;
-    client.connect(80, deviceIp, () => {
+    client.connect(81, deviceIp, () => {
       console.log(`Connected to ${deviceIp}`);
       document.getElementById(
         "mdns-status"
@@ -135,19 +135,20 @@ client.on("data", (data) => {
         `Data Loss Detected - Counter Difference: ${counter - prevData.counter}`
       );
 
-    if (!paused) {
-      let lastNValues = scaleData
-        .slice(-10)
-        .map((data) => data.scaleValueCalibrated);
+    let lastNValues = scaleData
+      .slice(-10)
+      .map((data) => data.scaleValueCalibrated);
+    let scaleValueCalibratedAvg =
+      lastNValues.reduce((a, b) => a + b, 0) /
+      (lastNValues.length < 1 ? 1 : lastNValues.length);
 
+    if (!paused) {
       scaleData.push({
         counter: counter,
         timestamp: timestamp,
         scaleValueRaw: scaleValueRaw,
         scaleValueCalibrated: scaleValueCalibrated,
-        scaleValueCalibratedAvg:
-          lastNValues.reduce((a, b) => a + b, 0) /
-          (lastNValues.length < 1 ? 1 : lastNValues.length),
+        scaleValueCalibratedAvg: scaleValueCalibratedAvg,
       });
     }
 
@@ -155,6 +156,8 @@ client.on("data", (data) => {
     document.getElementById("scale-raw").innerText = scaleValueRaw;
     document.getElementById("scale-cal").innerText =
       Math.round(scaleValueCalibrated * 1000) / 1000;
+    document.getElementById("scale-cal-avg").innerText =
+      Math.round(scaleValueCalibratedAvg * 1000) / 1000;
   });
 
   client.on("error", (err) => {

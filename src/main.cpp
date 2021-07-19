@@ -4,7 +4,7 @@
 #include <ESP8266mDNS.h>
 #include <HX711.h>
 
-WiFiServer server(80);
+WiFiServer liveDataServer(81);
 WiFiClient client;
 HX711 scale;
 
@@ -50,8 +50,8 @@ void setup()
 
   Serial.println(WiFi.localIP());
 
-  server.begin();
-  client = server.available();
+  liveDataServer.begin();
+  client = liveDataServer.available();
   Serial.println("Server Started");
 
   digitalWrite(LED_BUILTIN, LOW);
@@ -106,7 +106,7 @@ void actual_loop()
 
 void loop()
 {
-  client = server.available();
+  client = liveDataServer.available();
   client.setTimeout(100);
   if (client.connected())
   {
