@@ -28,6 +28,10 @@ const chart = new uPlot(
   document.getElementById("data-chart")
 );
 
+document.getElementById("reload").addEventListener("click", () => {
+  location.reload();
+});
+
 document
   .getElementById("zero")
   .addEventListener("click", () => client.write("zero"));
@@ -50,8 +54,8 @@ document.getElementById("dump").addEventListener("click", () => {
 
   fs.writeFile("data-dump.json", jsonData, "utf8", function (err) {
     if (err) {
-      console.err("JSON Log Error");
-      return console.err(err);
+      console.error("JSON Log Error");
+      return console.error(err);
     }
 
     console.log("JSON file has been saved.");
@@ -123,7 +127,7 @@ client.on("data", (data) => {
     }
 
     if (prevData && counter - prevData.counter > 1 && !paused)
-      console.warn(
+      console.error(
         `Data Loss Detected - Counter Difference: ${counter - prevData.counter}`
       );
 
