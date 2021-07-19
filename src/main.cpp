@@ -25,6 +25,9 @@ void setup()
   while (!WiFi.isConnected())
   {
     Serial.println("Connecting...");
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(50);
+    digitalWrite(LED_BUILTIN, HIGH);
     delay(1000);
   }
 
