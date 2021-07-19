@@ -114,7 +114,7 @@ client.on("data", (data) => {
     }
 
     if (prevData && counter - prevData.counter > 1 && !paused)
-      console.warn(
+      console.error(
         `Data Loss Detected - Counter Difference: ${counter - prevData.counter}`
       );
 
