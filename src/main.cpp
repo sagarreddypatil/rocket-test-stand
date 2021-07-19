@@ -98,8 +98,8 @@ void actual_loop()
     Serial.println("Command Finished");
   }
 
-  //Serial.print(out);
-  //Serial.println(1000.0 / (t - prevTime));
+  // Serial.print(out);
+  // Serial.println(1000.0 / (t - prevTime));
 
   prevTime = t;
 }
