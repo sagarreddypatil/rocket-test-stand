@@ -57,6 +57,7 @@ void setup() {
 unsigned long prevTime = 0;
 unsigned long counter = 0;
 char out[200];
+char in[10];
 
 void actual_loop() {
   unsigned long t = millis();
