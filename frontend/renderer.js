@@ -22,6 +22,9 @@ const chart = new uPlot(
       {
         stroke: "red",
       },
+      {
+        stroke: "green",
+      },
     ],
   },
   [],
@@ -102,6 +105,7 @@ mdnsResolver
   });
 
 client.on("data", (data) => {
+  data_unprocessed = data;
   data = data.toString().split("\n").slice(0, -1);
   if (data.length > 1) console.warn("Slightly Bad Data");
   data.forEach((line) => {
@@ -131,13 +135,21 @@ client.on("data", (data) => {
         `Data Loss Detected - Counter Difference: ${counter - prevData.counter}`
       );
 
-    if (!paused)
+    if (!paused) {
+      let lastNValues = scaleData
+        .slice(-10)
+        .map((data) => data.scaleValueCalibrated);
+
       scaleData.push({
         counter: counter,
         timestamp: timestamp,
         scaleValueRaw: scaleValueRaw,
         scaleValueCalibrated: scaleValueCalibrated,
+        scaleValueCalibratedAvg:
+          lastNValues.reduce((a, b) => a + b, 0) /
+          (lastNValues.length < 1 ? 1 : lastNValues.length),
       });
+    }
 
     document.getElementById("timestamp").innerText = timestamp;
     document.getElementById("scale-raw").innerText = scaleValueRaw;
@@ -155,5 +167,6 @@ client.on("data", (data) => {
   chart.setData([
     scaleData.slice(-graphLength).map((data) => data.timestamp),
     scaleData.slice(-graphLength).map((data) => data.scaleValueCalibrated),
+    scaleData.slice(-graphLength).map((data) => data.scaleValueCalibratedAvg),
   ]);
 });

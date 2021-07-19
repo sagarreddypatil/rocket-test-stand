@@ -1,8 +1,8 @@
+#include "secrets.h"
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <HX711.h>
-#include "secrets.h"
 
 WiFiServer server(80);
 WiFiClient client;
@@ -10,6 +10,8 @@ HX711 scale;
 
 const int DOUT = D6;
 const int CLK = D7;
+
+constexpr bool AP = false;
 
 void setup()
 {
@@ -21,14 +23,23 @@ void setup()
   scale.begin(DOUT, CLK);
   scale.tare();
 
-  WiFi.begin(SSID, PWD); //insert ssid and pwd here
-  while (!WiFi.isConnected())
+  if (AP)
+    WiFi.softAP("ESPTestStand", "All Hail Newton");
+  else
   {
-    Serial.println("Connecting...");
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(50);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(1000);
+    WiFi.begin(SSID, PWD);
+    while (!WiFi.isConnected())
+    {
+      Serial.println("Connecting...");
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(50);
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(50);
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(50);
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(850);
+    }
   }
 
   if (MDNS.begin("ESPTestStand", WiFi.localIP()))
