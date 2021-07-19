@@ -1,6 +1,7 @@
 const net = require("net");
 const fs = require("fs");
 const uPlot = require("uplot");
+const mdnsResolver = require("mdns-resolver");
 
 let paused = false;
 
@@ -74,19 +75,27 @@ document.getElementById("calibrate").addEventListener("click", () => {
   }, 1000);
 });
 
-document.getElementById("esp-ip").addEventListener("change", () => {
-  let newIp = document.getElementById("esp-ip").value;
-
-  client.end();
-  client.connect(80, document.getElementById("esp-ip").value, () => {
-    console.log(`Connected to ${newIp}`);
-  });
-});
-
+let deviceIp = "0.0.0.0";
 const client = new net.Socket();
-client.connect(80, document.getElementById("esp-ip").value, () => {
-  console.log("Connected");
-});
+
+mdnsResolver
+  .resolve4("ESPTestStand.local")
+  .then((ip) => {
+    deviceIp = ip;
+    document.getElementById(
+      "mdns-status"
+    ).innerText = `Device found. IP: ${deviceIp}`;
+    client.connect(80, deviceIp, () => {
+      console.log(`Connected to ${deviceIp}`);
+      document.getElementById(
+        "mdns-status"
+      ).innerText = `Connected to ${deviceIp}`;
+    });
+  })
+  .catch((err) => {
+    document.getElementById("mdns-status").innerText = "Unable to find device";
+    console.error(err);
+  });
 
 client.on("data", (data) => {
   data = data.toString().split("\n").slice(0, -1);
