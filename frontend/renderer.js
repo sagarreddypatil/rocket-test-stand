@@ -136,7 +136,7 @@ client.on("data", (data) => {
       );
 
     let lastNValues = scaleData
-      .slice(-10)
+      .slice(-90)
       .map((data) => data.scaleValueCalibrated);
     let scaleValueCalibratedAvg =
       lastNValues.reduce((a, b) => a + b, 0) /
