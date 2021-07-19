@@ -11,6 +11,8 @@ HX711 scale;
 const int DOUT = D6;
 const int CLK = D7;
 
+constexpr bool AP = false;
+
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
@@ -20,14 +22,24 @@ void setup() {
   scale.begin(DOUT, CLK);
   scale.tare();
 
-  WiFi.begin(SSID, PWD); // insert ssid and pwd here
-  while (!WiFi.isConnected()) {
-    Serial.println("Connecting...");
-    delay(1000);
+  if (AP)
+    WiFi.softAP("ESPTestStand", "All Hail Newton");
+  else {
+    WiFi.begin(SSID, PWD);
+    while (!WiFi.isConnected()) {
+      Serial.println("Connecting...");
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(50);
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(50);
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(50);
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(850);
+    }
   }
 
   if (MDNS.begin("ESPTestStand", WiFi.localIP())) {
-    MDNS.addService("ws", "tcp", 80);
     MDNS.addService("http", "tcp", 80);
     Serial.println("mDNS Started");
   }

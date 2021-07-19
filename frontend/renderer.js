@@ -1,6 +1,7 @@
 const net = require("net");
 const fs = require("fs");
 const uPlot = require("uplot");
+const mdnsResolver = require("mdns-resolver");
 
 let paused = false;
 
@@ -21,11 +22,18 @@ const chart = new uPlot(
       {
         stroke: "red",
       },
+      {
+        stroke: "green",
+      },
     ],
   },
   [],
   document.getElementById("data-chart")
 );
+
+document.getElementById("reload").addEventListener("click", () => {
+  location.reload();
+});
 
 document
   .getElementById("zero")
@@ -49,8 +57,8 @@ document.getElementById("dump").addEventListener("click", () => {
 
   fs.writeFile("data-dump.json", jsonData, "utf8", function (err) {
     if (err) {
-      console.err("JSON Log Error");
-      return console.err(err);
+      console.error("JSON Log Error");
+      return console.error(err);
     }
 
     console.log("JSON file has been saved.");
@@ -74,21 +82,30 @@ document.getElementById("calibrate").addEventListener("click", () => {
   }, 1000);
 });
 
-document.getElementById("esp-ip").addEventListener("change", () => {
-  let newIp = document.getElementById("esp-ip").value;
-
-  client.end();
-  client.connect(80, document.getElementById("esp-ip").value, () => {
-    console.log(`Connected to ${newIp}`);
-  });
-});
-
+let deviceIp = "0.0.0.0";
 const client = new net.Socket();
-client.connect(80, document.getElementById("esp-ip").value, () => {
-  console.log("Connected");
-});
+
+mdnsResolver
+  .resolve4("ESPTestStand.local")
+  .then((ip) => {
+    deviceIp = ip;
+    document.getElementById(
+      "mdns-status"
+    ).innerText = `Device found. IP: ${deviceIp}`;
+    client.connect(80, deviceIp, () => {
+      console.log(`Connected to ${deviceIp}`);
+      document.getElementById(
+        "mdns-status"
+      ).innerText = `Connected to ${deviceIp}`;
+    });
+  })
+  .catch((err) => {
+    document.getElementById("mdns-status").innerText = "Unable to find device";
+    console.error(err);
+  });
 
 client.on("data", (data) => {
+  data_unprocessed = data;
   data = data.toString().split("\n").slice(0, -1);
   if (data.length > 1) console.warn("Slightly Bad Data");
   data.forEach((line) => {
@@ -118,13 +135,21 @@ client.on("data", (data) => {
         `Data Loss Detected - Counter Difference: ${counter - prevData.counter}`
       );
 
-    if (!paused)
+    if (!paused) {
+      let lastNValues = scaleData
+        .slice(-10)
+        .map((data) => data.scaleValueCalibrated);
+
       scaleData.push({
         counter: counter,
         timestamp: timestamp,
         scaleValueRaw: scaleValueRaw,
         scaleValueCalibrated: scaleValueCalibrated,
+        scaleValueCalibratedAvg:
+          lastNValues.reduce((a, b) => a + b, 0) /
+          (lastNValues.length < 1 ? 1 : lastNValues.length),
       });
+    }
 
     document.getElementById("timestamp").innerText = timestamp;
     document.getElementById("scale-raw").innerText = scaleValueRaw;
@@ -142,5 +167,6 @@ client.on("data", (data) => {
   chart.setData([
     scaleData.slice(-graphLength).map((data) => data.timestamp),
     scaleData.slice(-graphLength).map((data) => data.scaleValueCalibrated),
+    scaleData.slice(-graphLength).map((data) => data.scaleValueCalibratedAvg),
   ]);
 });

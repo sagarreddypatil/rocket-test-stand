@@ -13,6 +13,7 @@
     "electron-reloader": "^1.2.1"
   },
   "dependencies": {
+    "mdns-resolver": "^1.1.0",
     "uplot": "^1.6.13"
   }
 }
