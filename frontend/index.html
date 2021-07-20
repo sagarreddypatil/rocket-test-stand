@@ -5,7 +5,7 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"
     />
     <meta
       http-equiv="X-Content-Security-Policy"
@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="node_modules/uplot/dist/uPlot.min.css" />
     <title>Rocket Test Control Panel</title>
   </head>
+
   <body>
     <div>
       <button id="reload">Reload App</button><br /><br />
@@ -30,9 +31,16 @@
       Data Frequency: <span id="freq">0</span> Hz
       <br />
       Graph Length:
-      <input type="range" min="0" max="2000" id="graph-length" />
+      <input
+        type="range"
+        min="0"
+        max="1000"
+        id="graph-length"
+        style="width: 500px"
+      />
       <br />
       <button id="pause">Pause</button>
+      <button id="pause-mcu">Pause MCU</button>
       <div id="data-chart"></div>
       <br /><button id="clear-data">Clear Data</button> <br /><button id="dump">
         Dump Data to File

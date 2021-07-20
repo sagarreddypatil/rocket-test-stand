@@ -97,7 +97,7 @@ void setup() {
 
 unsigned long prevTime = 0;
 unsigned long counter = 0;
-char out[200];
+char out[500];
 char ipt[10];
 bool pauseFileWrites = false;
 
@@ -106,19 +106,19 @@ void actual_loop() {
   MDNS.update();
 
   long rawValue = scale.get_value();
+  snprintf(out, sizeof(out), "%d,%lu,%lu,%ld\n", pauseFileWrites, counter,
+           millis(), rawValue);
 
   if (client.connected()) {
     counter++;
-    snprintf(out, sizeof(out), "%lu,%lu,%ld\n", counter, millis(), rawValue);
     client.write(out);
-  } else {
-    sprintf(out, "%lu,%ld\n", millis(), rawValue);
   }
 
   DataPoint dp = DataPoint(counter, t, rawValue);
   if (!pauseFileWrites) dataFile.write((byte *)&dp, sizeof(DataPoint));
 
   if (client.available()) {
+    memset(ipt, 0, sizeof(ipt));
     client.readBytesUntil('\n', ipt, sizeof(ipt));
 
     Serial.print("Recieved command:");

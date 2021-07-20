@@ -51,8 +51,11 @@ document.getElementById("clear-data").addEventListener("click", () => {
 document.getElementById("pause").addEventListener("click", () => {
   paused = !paused;
   document.getElementById("pause").innerText = paused ? "Unpause" : "Pause";
-  client.write("pause\n");
 });
+
+document
+  .getElementById("pause-mcu")
+  .addEventListener("click", () => client.write("pause\n"));
 
 document.getElementById("dump").addEventListener("click", () => {
   let jsonData = JSON.stringify(scaleData);
@@ -107,16 +110,16 @@ mdnsResolver
   });
 
 client.on("data", (data) => {
-  data_unprocessed = data;
   data = data.toString().split("\n").slice(0, -1);
   if (data.length > 1) console.warn("Slightly Bad Data");
   data.forEach((line) => {
     let badData = line === "";
     line = line.split(",");
 
-    let counter = parseInt(line[0]);
-    let timestamp = parseInt(line[1]);
-    let scaleValueRaw = parseInt(line[2]);
+    let mcuPaused = line[0] === "1";
+    let counter = parseInt(line[1]);
+    let timestamp = parseInt(line[2]);
+    let scaleValueRaw = parseInt(line[3]);
     let scaleValueCalibrated =
       scaleValueRaw / window.localStorage.getItem("scale-calibration");
 
@@ -124,7 +127,7 @@ client.on("data", (data) => {
 
     if (
       badData ||
-      line.length !== 3 ||
+      line.length !== 4 ||
       (prevData && counter < prevData.counter) ||
       (prevData && timestamp < prevData.timestamp)
     ) {
@@ -163,6 +166,9 @@ client.on("data", (data) => {
       Math.round(scaleValueCalibrated * 1000) / 1000;
     document.getElementById("scale-cal-avg").innerText =
       Math.round(scaleValueCalibratedAvg * 1000) / 1000;
+    document.getElementById("pause-mcu").innerText = mcuPaused
+      ? "Unpause MCU"
+      : "Pause MCU";
   });
 
   client.on("error", (err) => {
