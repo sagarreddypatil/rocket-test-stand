@@ -54,9 +54,6 @@ void setup() {
     errorLED();
   }
 
-  removeDataFile();
-  startDataFile();
-
   if (AP)
     WiFi.softAP("ESPTestStand", "All Hail Newton");
   else {
@@ -99,7 +96,7 @@ unsigned long counter = 0;
 char out[1024];
 char fileOut[1024];
 char ipt[10];
-bool pauseFileWrites = false;
+bool pauseFileWrites = true;
 
 void actual_loop() {
   unsigned long t = millis();
