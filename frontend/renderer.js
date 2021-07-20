@@ -109,11 +109,19 @@ mdnsResolver
     console.error(err);
   });
 
+client.on("error", (err) => {
+  console.log(`Network Error: ${err}`);
+  client.end();
+});
+
 client.on("data", (data) => {
   data = data.toString().split("\n").slice(0, -1);
-  if (data.length > 1) console.warn("Slightly Bad Data");
+  if (data.length > 1) {
+    if (data.length < 20) console.warn("Slightly Bad Data < 20");
+    else console.warn("Slightly Bad Data >= 20");
+  }
   data.forEach((line) => {
-    let badData = line === "";
+    line_unprocessed = line;
     line = line.split(",");
 
     let mcuPaused = line[0] === "1";
@@ -126,18 +134,19 @@ client.on("data", (data) => {
     let prevData = scaleData.slice(-1)[0];
 
     if (
-      badData ||
+      line_unprocessed === "" ||
       line.length !== 4 ||
       (prevData && counter < prevData.counter) ||
       (prevData && timestamp < prevData.timestamp)
     ) {
       console.error("Bad Data");
+      console.error(line_unprocessed);
       return; // Discard bad data
     }
 
     if (prevData && counter - prevData.counter > 1 && !paused)
       console.error(
-        `Data Loss Detected - Counter Difference: ${counter - prevData.counter}`
+        `Data Loss Detected: ${counter - prevData.counter} lines lost`
       );
 
     let lastNValues = scaleData
@@ -169,11 +178,6 @@ client.on("data", (data) => {
     document.getElementById("pause-mcu").innerText = mcuPaused
       ? "Unpause MCU"
       : "Pause MCU";
-  });
-
-  client.on("error", (err) => {
-    console.log(`Network Error: ${err}`);
-    client.end();
   });
 
   let graphLength = parseFloat(document.getElementById("graph-length").value);
