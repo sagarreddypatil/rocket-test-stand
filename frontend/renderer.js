@@ -37,19 +37,21 @@ document.getElementById("reload").addEventListener("click", () => {
 
 document
   .getElementById("zero")
-  .addEventListener("click", () => client.write("zero"));
+  .addEventListener("click", () => client.write("zero\n"));
 
 document
   .getElementById("reset")
-  .addEventListener("click", () => client.write("reset"));
+  .addEventListener("click", () => client.write("reset\n"));
 
-document
-  .getElementById("clear-data")
-  .addEventListener("click", () => (scaleData = []));
+document.getElementById("clear-data").addEventListener("click", () => {
+  scaleData = [];
+  client.write("clear\n");
+});
 
 document.getElementById("pause").addEventListener("click", () => {
   paused = !paused;
   document.getElementById("pause").innerText = paused ? "Unpause" : "Pause";
+  client.write("pause\n");
 });
 
 document.getElementById("dump").addEventListener("click", () => {
@@ -153,6 +155,9 @@ client.on("data", (data) => {
     }
 
     document.getElementById("timestamp").innerText = timestamp;
+    if (prevData)
+      document.getElementById("freq").innerText =
+        1000 / (timestamp - prevData.timestamp);
     document.getElementById("scale-raw").innerText = scaleValueRaw;
     document.getElementById("scale-cal").innerText =
       Math.round(scaleValueCalibrated * 1000) / 1000;
