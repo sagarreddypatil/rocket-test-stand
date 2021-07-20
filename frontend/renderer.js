@@ -57,16 +57,27 @@ document
   .getElementById("pause-mcu")
   .addEventListener("click", () => client.write("pause\n"));
 
-document.getElementById("dump").addEventListener("click", () => {
-  let jsonData = JSON.stringify(scaleData);
+//from https://stackoverflow.com/questions/11257062/converting-json-object-to-csv-format-in-javascript
+function arrayToCSV(arr) {
+  const array = [Object.keys(arr[0])].concat(arr);
 
-  fs.writeFile("data-dump.json", jsonData, "utf8", function (err) {
+  return array
+    .map((it) => {
+      return Object.values(it).toString();
+    })
+    .join("\n");
+}
+
+document.getElementById("dump").addEventListener("click", () => {
+  let csvData = arrayToCSV(scaleData);
+
+  fs.writeFile("frontend-data-dump.csv", csvData, "utf8", function (err) {
     if (err) {
-      console.error("JSON Log Error");
+      console.error("CSV Log Error");
       return console.error(err);
     }
 
-    console.log("JSON file has been saved.");
+    console.log("CSV file has been saved.");
   });
 });
 
