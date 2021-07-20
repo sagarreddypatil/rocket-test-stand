@@ -5,11 +5,7 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"
-    />
-    <meta
-      http-equiv="X-Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src *;"
     />
     <link rel="stylesheet" href="node_modules/uplot/dist/uPlot.min.css" />
     <title>Rocket Test Control Panel</title>
@@ -39,14 +35,14 @@
         style="width: 500px"
       />
       <br />
+      <button id="pause-all">Toggle Pause All</button>
       <button id="pause">Pause</button>
       <button id="pause-mcu">Pause MCU</button>
       <div id="data-chart"></div>
       <br /><button id="clear-data">Clear Data</button> <br /><button id="dump">
         Dump Data to File</button
-      ><br /><button id="dump">Download Data from MCU</button> <br /><button
-        id="zero"
-      >
+      ><button id="dump-mcu">Download Data from MCU</button
+      ><span id="download-status"></span> <br /><button id="zero">
         Zero Scale
       </button>
     </div>

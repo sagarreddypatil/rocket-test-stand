@@ -57,6 +57,11 @@ document
   .getElementById("pause-mcu")
   .addEventListener("click", () => client.write("pause\n"));
 
+document.getElementById("pause-all").addEventListener("click", () => {
+  document.getElementById("pause").click();
+  document.getElementById("pause-mcu").click();
+});
+
 //from https://stackoverflow.com/questions/11257062/converting-json-object-to-csv-format-in-javascript
 function arrayToCSV(arr) {
   const array = [Object.keys(arr[0])].concat(arr);
@@ -71,14 +76,48 @@ function arrayToCSV(arr) {
 document.getElementById("dump").addEventListener("click", () => {
   let csvData = arrayToCSV(scaleData);
 
-  fs.writeFile("frontend-data-dump.csv", csvData, "utf8", function (err) {
+  fs.writeFile("frontend-data-dump.csv", csvData, "utf8", (err) => {
     if (err) {
       console.error("CSV Log Error");
-      return console.error(err);
+      return;
     }
 
     console.log("CSV file has been saved.");
   });
+});
+
+document.getElementById("dump-mcu").addEventListener("click", () => {
+  document.getElementById("download-status").innerText = "Downloading...";
+
+  fetch(`http://${deviceIp}/data`)
+    .then((response) => response.text())
+    .then((csv) => {
+      csv = csv.split("\n");
+      csv = csv.map((row, idx) => {
+        if (row === "") return row;
+        if (idx === 0) return row + ",scaleValueCalibrated";
+        let rawVal = parseInt(row.split(",")[2]);
+        return (
+          row + "," + rawVal / window.localStorage.getItem("scale-calibration")
+        );
+      });
+      csv = csv.join("\n");
+
+      fs.writeFile("mcu-data-dump.csv", csv, "utf8", (err) => {
+        if (err) {
+          console.error(err);
+          document.getElementById("download-status").innerText =
+            "File Save Failed";
+          return;
+        }
+        document.getElementById("download-status").innerText =
+          "Download Complete";
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      document.getElementById("download-status").innerText = "Download Failed";
+    });
 });
 
 document.getElementById("calibrate").addEventListener("click", () => {

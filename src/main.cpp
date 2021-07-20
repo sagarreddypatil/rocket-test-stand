@@ -9,19 +9,18 @@
 #include "secrets.h"
 
 WiFiServer liveDataServer(81);
-AsyncWebServer fileServer(80);
-File dataFile;
 WiFiClient client;
+
+AsyncWebServer fileServer(80);
+
 HX711 scale;
 
-struct DataPoint {
-  unsigned long counter;
-  unsigned long timestamp;
-  long rawValue;
-
-  DataPoint(unsigned long c, unsigned long t, long rv)
-      : counter(c), timestamp(t), rawValue(rv){};
-};
+File dataFile;
+void startDataFile() {
+  dataFile = LittleFS.open("/data.csv", "w");
+  dataFile.write("counter,timestamp,scaleValueRaw\n");
+}
+void removeDataFile() { LittleFS.remove("/data.csv"); }
 
 const int DOUT = D6;
 const int CLK = D7;
@@ -55,8 +54,8 @@ void setup() {
     errorLED();
   }
 
-  LittleFS.remove("/data.bin");
-  dataFile = LittleFS.open("/data.bin", "w");
+  removeDataFile();
+  startDataFile();
 
   if (AP)
     WiFi.softAP("ESPTestStand", "All Hail Newton");
@@ -82,7 +81,7 @@ void setup() {
   });
 
   fileServer.on("/data", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(LittleFS, "/data.bin", "application/octet-stream", true);
+    request->send(LittleFS, "/data.csv", "text/csv", false);
   });
 
   fileServer.begin();
@@ -97,7 +96,8 @@ void setup() {
 
 unsigned long prevTime = 0;
 unsigned long counter = 0;
-char out[500];
+char out[1024];
+char fileOut[1024];
 char ipt[10];
 bool pauseFileWrites = false;
 
@@ -106,16 +106,18 @@ void actual_loop() {
   MDNS.update();
 
   long rawValue = scale.get_value();
-  snprintf(out, sizeof(out), "%d,%lu,%lu,%ld\n", pauseFileWrites, counter,
-           millis(), rawValue);
+  snprintf(out, sizeof(out), "%d,%lu,%lu,%ld\n", pauseFileWrites, counter, t,
+           rawValue);
 
   if (client.connected()) {
     counter++;
     client.write(out);
   }
 
-  DataPoint dp = DataPoint(counter, t, rawValue);
-  if (!pauseFileWrites) dataFile.write((byte *)&dp, sizeof(DataPoint));
+  int len = snprintf(NULL, 0, "%lu,%lu,%ld\n", counter, t, rawValue);
+  snprintf(fileOut, sizeof(fileOut), "%lu,%lu,%ld\n", counter, t, rawValue);
+
+  if (!pauseFileWrites) dataFile.write(fileOut, len);
 
   if (client.available()) {
     memset(ipt, 0, sizeof(ipt));
@@ -129,7 +131,7 @@ void actual_loop() {
       Serial.println("Zeroed Scale");
     } else if (strcmp(ipt, "pause") == 0) {
       if (pauseFileWrites) {
-        dataFile = LittleFS.open("/data.bin", "w");
+        startDataFile();
         Serial.println("Unpaused");
       } else {
         dataFile.close();
@@ -138,8 +140,8 @@ void actual_loop() {
       pauseFileWrites = !pauseFileWrites;
     } else if (strcmp(ipt, "clear") == 0) {
       dataFile.close();
-      LittleFS.remove("/data.bin");
-      if (!pauseFileWrites) dataFile = LittleFS.open("/data.bin", "w");
+      removeDataFile();
+      if (!pauseFileWrites) startDataFile();
 
       Serial.println("Data cleared");
     } else if (strcmp(ipt, "reset") == 0) {
