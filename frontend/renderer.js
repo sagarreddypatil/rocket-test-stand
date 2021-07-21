@@ -45,7 +45,15 @@ document
 
 document.getElementById("clear-data").addEventListener("click", () => {
   scaleData = [];
+});
+
+document.getElementById("clear-data-mcu").addEventListener("click", () => {
   client.write("clear\n");
+});
+
+document.getElementById("clear-data-all").addEventListener("click", () => {
+  document.getElementById("clear-data").click();
+  document.getElementById("clear-data-mcu").click();
 });
 
 document.getElementById("pause").addEventListener("click", () => {

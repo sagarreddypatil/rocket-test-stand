@@ -13,10 +13,14 @@
 
   <body>
     <div>
-      <button id="reload">Reload App</button><br /><br />
-      Connection Status: <span id="mdns-status">Looking for device</span><br />
+      <button id="reload">Reload App</button>
+      <br />
+      <br />
+      Connection Status: <span id="mdns-status">Looking for device</span>
+      <br />
       <button id="reset">Reset</button>
-      <br />Timestamp: <span id="timestamp">0</span>
+      <br />
+      Timestamp: <span id="timestamp">0</span>
       <br />
       Current Force(Internal Units): <span id="scale-raw">0</span>
       <br />
@@ -39,18 +43,21 @@
       <button id="pause">Pause</button>
       <button id="pause-mcu">Pause MCU</button>
       <div id="data-chart"></div>
-      <br /><button id="clear-data">Clear Data</button> <br /><button id="dump">
-        Dump Data to File</button
-      ><button id="dump-mcu">Download Data from MCU</button
-      ><span id="download-status"></span> <br /><button id="zero">
-        Zero Scale
-      </button>
+      <br /><button id="clear-data-all">Clear All</button>
+      <button id="clear-data">Clear Data</button>
+      <button id="clear-data-mcu">Clear Data MCU</button>
+      <br />
+      <button id="dump">Dump Data to File</button>
+      <button id="dump-mcu">Download Data from MCU</button>
+      <span id="download-status"></span>
+      <br />
+      <button id="zero">Zero Scale</button>
     </div>
     <br />
     <div>
       <input type="number" id="cal-scale" placeholder="Calibration Scale" />
-      <button id="calibrate">Calibrate</button
-      ><span id="calibration-info"></span>
+      <button id="calibrate">Calibrate</button>
+      <span id="calibration-info"></span>
     </div>
     <script src="./renderer.js"></script>
   </body>
