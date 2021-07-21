@@ -129,7 +129,8 @@ document.getElementById("dump-mcu").addEventListener("click", () => {
 });
 
 document.getElementById("calibrate").addEventListener("click", () => {
-  document.getElementById("calibration-info").innerText = "Calibrating...";
+  document.getElementById("calibration-info").innerText =
+    "Waiting 2 seconds...";
   let startIdx = scaleData.length - 1;
   setTimeout(() => {
     let sliced = scaleData.slice(startIdx);
@@ -142,7 +143,7 @@ document.getElementById("calibrate").addEventListener("click", () => {
     window.localStorage.setItem("scale-calibration", avg / calScale);
     document.getElementById("calibration-info").innerText =
       "Calibration Finished";
-  }, 1000);
+  }, 2000);
 });
 
 let deviceIp = "0.0.0.0";
@@ -208,7 +209,7 @@ client.on("data", (data) => {
       );
 
     let lastNValues = scaleData
-      .slice(-90)
+      .slice(-100)
       .map((data) => data.scaleValueCalibrated);
     let scaleValueCalibratedAvg =
       lastNValues.reduce((a, b) => a + b, 0) /
