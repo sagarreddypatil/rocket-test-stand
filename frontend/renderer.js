@@ -83,15 +83,29 @@ function arrayToCSV(arr) {
 
 document.getElementById("dump").addEventListener("click", () => {
   let csvData = arrayToCSV(scaleData);
+  let runIdx = 0;
+  while (fs.existsSync(`data_dumps/run${runIdx}/frontend.csv`)) {
+    runIdx++;
+  }
 
-  fs.writeFile("data_dumps/frontend.csv", csvData, "utf8", (err) => {
-    if (err) {
-      console.error("CSV Log Error");
-      return;
+  if (!fs.existsSync(`data_dumps/run${runIdx}`)) {
+    fs.mkdirSync(`data_dumps/run${runIdx}`);
+  }
+
+  fs.writeFile(
+    `data_dumps/run${runIdx}/frontend.csv`,
+    csvData,
+    "utf8",
+    (err) => {
+      if (err) {
+        console.error("CSV Log Error");
+        console.error(err);
+        return;
+      }
+
+      console.log("CSV file has been saved.");
     }
-
-    console.log("CSV file has been saved.");
-  });
+  );
 });
 
 document.getElementById("dump-mcu").addEventListener("click", () => {
@@ -111,7 +125,16 @@ document.getElementById("dump-mcu").addEventListener("click", () => {
       });
       csv = csv.join("\n");
 
-      fs.writeFile("mcu-data-dump.csv", csv, "utf8", (err) => {
+      let runIdx = 0;
+      while (fs.existsSync(`data_dumps/run${runIdx}/mcu.csv`)) {
+        runIdx++;
+      }
+
+      if (!fs.existsSync(`data_dumps/run${runIdx}`)) {
+        fs.mkdirSync(`data_dumps/run${runIdx}`);
+      }
+
+      fs.writeFile(`data_dumps/run${runIdx}/mcu.csv`, csv, "utf8", (err) => {
         if (err) {
           console.error(err);
           document.getElementById("download-status").innerText =
