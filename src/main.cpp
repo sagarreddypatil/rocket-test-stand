@@ -66,11 +66,6 @@ void setup() {
     }
   }
 
-  if (MDNS.begin("ESPTestStand", WiFi.localIP())) {
-    MDNS.addService("http", "tcp", 80);
-    Serial.println("mDNS Started");
-  }
-
   Serial.println(WiFi.localIP());
 
   fileServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -87,6 +82,15 @@ void setup() {
   liveDataServer.begin();
   client = liveDataServer.available();
   Serial.println("Live Data Server Started");
+
+  if (MDNS.begin("ESPTestStand", WiFi.localIP())) {
+    MDNS.addService("http", "tcp", 80);
+    MDNS.addService("http", "tcp", 81);
+    Serial.println("mDNS Started");
+  } else {
+    Serial.println("mDNS Failed");
+    errorLED();
+  }
 
   digitalWrite(LED_BUILTIN, LOW);
 }
