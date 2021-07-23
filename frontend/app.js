@@ -1,10 +1,6 @@
 var net = require("net");
 const { app, BrowserWindow } = require("electron");
 
-try {
-  require("electron-reloader")(module);
-} catch (_) {}
-
 function createWindow() {
   const win = new BrowserWindow({
     backgroundColor: "#FFF",

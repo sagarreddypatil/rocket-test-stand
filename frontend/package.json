@@ -9,8 +9,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^13.1.6",
-    "electron-reloader": "^1.2.1"
+    "electron": "^13.1.6"
   },
   "dependencies": {
     "mdns-resolver": "^1.1.0",

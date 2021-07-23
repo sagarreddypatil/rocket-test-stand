@@ -84,7 +84,7 @@ function arrayToCSV(arr) {
 document.getElementById("dump").addEventListener("click", () => {
   let csvData = arrayToCSV(scaleData);
 
-  fs.writeFile("frontend-data-dump.csv", csvData, "utf8", (err) => {
+  fs.writeFile("data_dumps/frontend.csv", csvData, "utf8", (err) => {
     if (err) {
       console.error("CSV Log Error");
       return;
@@ -150,7 +150,7 @@ let deviceIp = "0.0.0.0";
 const client = new net.Socket();
 
 mdnsResolver
-  .resolve4("ESPTestStand.local")
+  .resolve("ESPTestStand.local", "A")
   .then((ip) => {
     deviceIp = ip;
     document.getElementById(
