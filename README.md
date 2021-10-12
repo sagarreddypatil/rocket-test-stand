@@ -8,7 +8,7 @@ The application uses mDNS to find the IP address of the ESP8266, and uses a fast
 The connection drops are a little unbearable if the wireless connection is slow, and for some reason, does not work very well on mobile hotspots.
 
 Here are some flaws with this cocde:
- - Uses TCP because I didn't want any data loss because the onboard data logging is kinda meh
+ - Uses TCP because I didn't want any data loss. I didn't bother changing it after implementing onboard data logging.
  - Uses an Electron app to recieve the data instead of something like LabView, mostly because I have never used LabView.
  - Needs a really strong network connection(probably because of the TCP)
  - Writes data logs as a CSV string instead of binary, because I really didn't want to figure out how to serialize and deserialze binary accross platforms.
